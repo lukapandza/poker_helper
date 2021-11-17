@@ -1,0 +1,84 @@
+---
+title: "Poker Analysis"
+author: "Luka Pandza"
+date: "10/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r utilities}
+update = function(bb_stacks = c(0), filepath) {
+  stacks = read.delim(filepath, header = FALSE, sep = "\n")
+  v_stacks = stacks[, 1]
+  big_blind = v_stacks[1]
+  v_stacks = v_stacks[-1]
+  start_amount = v_stacks[1]
+  bb_stacks_loc = round(v_stacks / big_blind, 1)
+  start = bb_stacks[length(bb_stacks)] - (start_amount / big_blind)
+  bb_stacks_loc = bb_stacks_loc + start
+  return(c(bb_stacks, bb_stacks_loc))
+}
+```
+
+```{r process_data}
+bb_stacks = c(0)
+
+bb_stacks = update(bb_stacks, "record-Fri-Oct-22-23-29-54-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Sat-Oct-23-19-27-20-2021.txt")
+bb_stacks = update(bb_stacks, "record-Sat-Oct-23-21-21-33-2021.txt")
+bb_stacks = update(bb_stacks, "record-Sat-Oct-23-23-29-23-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Sun-Oct-24-00-07-41-2021.txt")
+bb_stacks = update(bb_stacks, "record-Sun-Oct-24-19-52-10-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Sun-Oct-31-23-01-21-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Sun-Nov-14-12-50-06-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Mon-Nov-15-21-40-22-2021.txt")
+bb_stacks = update(bb_stacks, "record-Mon-Nov-15-22-36-01-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Tue-Nov-16-14-30-52-2021.txt")
+bb_stacks = update(bb_stacks, "record-Tue-Nov-16-20-58-53-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Wed-Nov-17-11-56-23-2021.txt")
+```
+
+### Graphing progress
+```{r bb100k}
+
+num_hands = length(bb_stacks)
+
+## avg bb/100:
+num_100_samples = floor(num_hands / 100)
+sample_bb_100s = sapply(1:num_100_samples, function (x) mean(bb_stacks[((x - 1) * 100 + 1) : (x * 100)]))
+sample_bb_100s
+
+avg_bb_100 = mean(sample_bb_100s)
+var_bb_100 = var(sample_bb_100s)
+sd_bb_100 = sqrt(var_bb_100)
+
+## total performance:
+performance = (bb_stacks[length(bb_stacks)] - bb_stacks[1]) / num_hands * 100
+
+## probability that I am profitable:
+p_profit = 1 - pnorm(0, avg_bb_100, sd_bb_100)
+
+## visualize:
+plot(1:length(bb_stacks), bb_stacks, type = 'l', lty = 1, xlab = "Hand #", ylab = "Cumulative Stack Size [# of big blinds]", lwd = 1, pch = NULL)
+lines(c(1, length(bb_stacks)), c(bb_stacks[1], bb_stacks[length(bb_stacks)]), col = "lightgreen", lty = 2)
+lines(c(0, length(bb_stacks)), c(0, 0), col = "red", lty = 2)
+
+legend(0, max(bb_stacks), 
+       c(paste('# of Hands = ', as.character(num_hands)), 
+         paste('MEAN bb/100 = ', as.character(round(avg_bb_100, 2))), 
+         paste('VAR bb/100 = ', as.character(round(var_bb_100, 2))), 
+         paste('SD bb/100 = ', as.character(round(sd_bb_100, 2))), 
+         paste('P(profit) = ', as.character(round(p_profit, 2)))),
+       lty=c(2, 2, 2), 
+       col=c('white', 'white', 'white'))
+```
