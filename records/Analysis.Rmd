@@ -81,4 +81,6 @@ legend(0, max(bb_stacks),
          paste('P(profit) = ', as.character(round(p_profit, 2)))),
        lty=c(2, 2, 2), 
        col=c('white', 'white', 'white'))
+
+hist(sample_bb_100s, breaks = num_100_samples, col = 'white')
 ```
