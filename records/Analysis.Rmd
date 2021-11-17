@@ -55,8 +55,24 @@ num_hands = length(bb_stacks)
 
 ## avg bb/100:
 num_100_samples = floor(num_hands / 100)
-sample_bb_100s = sapply(1:num_100_samples, function (x) mean(bb_stacks[((x - 1) * 100 + 1) : (x * 100)]))
+sample_bb_100s = sapply(1:num_100_samples, 
+                        function (x) mean(bb_stacks[((x - 1) * 100 + 1) : (x * 100)]))
 sample_bb_100s
+
+# histogram:
+hist_width = 50
+
+lo = (min(sample_bb_100s) - min(sample_bb_100s) %% hist_width) - hist_width
+hi = (max(sample_bb_100s) + (hist_width - max(sample_bb_100s) %% hist_width)) + hist_width
+
+breaks = seq(from = lo, 
+             to = hi, 
+             by = hist_width)
+
+hist(sample_bb_100s,
+     xlim = c(lo, hi),
+     breaks = breaks, 
+     col = 'white')
 
 avg_bb_100 = mean(sample_bb_100s)
 var_bb_100 = var(sample_bb_100s)
@@ -68,10 +84,23 @@ performance = (bb_stacks[length(bb_stacks)] - bb_stacks[1]) / num_hands * 100
 ## probability that I am profitable:
 p_profit = 1 - pnorm(0, avg_bb_100, sd_bb_100)
 
-## visualize:
-plot(1:length(bb_stacks), bb_stacks, type = 'l', lty = 1, xlab = "Hand #", ylab = "Cumulative Stack Size [# of big blinds]", lwd = 1, pch = NULL)
-lines(c(1, length(bb_stacks)), c(bb_stacks[1], bb_stacks[length(bb_stacks)]), col = "lightgreen", lty = 2)
-lines(c(0, length(bb_stacks)), c(0, 0), col = "red", lty = 2)
+## visualize hands:
+plot(1:length(bb_stacks), 
+     bb_stacks, 
+     type = 'l', 
+     lty = 1, 
+     xlab = "Hand #", 
+     ylab = "Cumulative Stack Size [# of big blinds]", 
+     lwd = 1, 
+     pch = NULL)
+
+lines(c(1, length(bb_stacks)), c(bb_stacks[1], bb_stacks[length(bb_stacks)]), 
+      col = "lightgreen", 
+      lty = 2)
+
+lines(c(0, length(bb_stacks)), c(0, 0), 
+      col = "red", 
+      lty = 2)
 
 legend(0, max(bb_stacks), 
        c(paste('# of Hands = ', as.character(num_hands)), 
@@ -81,6 +110,4 @@ legend(0, max(bb_stacks),
          paste('P(profit) = ', as.character(round(p_profit, 2)))),
        lty=c(2, 2, 2), 
        col=c('white', 'white', 'white'))
-
-hist(sample_bb_100s, breaks = num_100_samples, col = 'white')
 ```
