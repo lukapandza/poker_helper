@@ -22,7 +22,7 @@ map<string, int> RANK_MAP;
 
 vector<int> DECK;
 
-int NUM_SAMPLES = 100000;
+int NUM_SAMPLES = 250000;
 
 unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 std::default_random_engine RNG(seed);
@@ -41,7 +41,6 @@ inline string int_code_to_str(int card) {
 }
 
 inline int str_to_int_code(string card) {
-    // cout << "str_to_int_code( \"" << card << "\" ) called." << endl;
     return 4 * RANK_MAP[card.substr(0, 1)] + SUIT_MAP[card.substr(1, 1)] + 1;
 }
 
@@ -109,82 +108,48 @@ float pre_flop_win_estimate(vector<int>& my_cards, int num_opponents) {
 
 int estimate_num_wins(int* my_hand, int* sample_hand, vector<int> sample_deck, int num_out_cards, int start_num_opponents, int num_opponents, int num_samples = 10000) {
 
-    // std::cout << "estimate_num_wins( " << my_hand << ", " << sample_hand << ", " << &sample_deck << ", " << num_out_cards << ", " << start_num_opponents << ", " << num_opponents << ", " << num_samples << " )" << endl;
-
-    // std::cout << "entered estimate_num_wins" << endl;
-
-    // std::cout << "sample_deck: " << endl;
-    // print_deck(sample_deck);
-
     int win_count = 0;
     float avg_prob = 1.0f / (start_num_opponents + 1);
     std::normal_distribution<float> dist(0, .15f * avg_prob);
-
-    // std::cout << "created main vars" << endl;
 
     for (int i = 0; i < num_samples; i++) {
 
         // shuffle deck
         shuffle(begin(sample_deck), end(sample_deck), RNG);
 
-        // std::cout << "shuffled deck" << endl;
-        // std::cout << "sample_deck: " << endl;
-        // print_deck(sample_deck);
-
         int draw_index = 0;
 
         // draw to complete out_cards
         if (num_out_cards == 3) {
-            // std::cout << "entered num_out_cards == 3" << endl;
-            // std::cout << "sample_deck[drawindex] = " << sample_deck[draw_index] << endl;
             my_hand[5] = sample_hand[3] = sample_deck[draw_index++];
-            // std::cout << "my_hand[5] = sample_hand[3] = " << my_hand[5] << endl;
             my_hand[6] = sample_hand[4] = sample_deck[draw_index++];
-            // std::cout << "my_hand[6] = sample_hand[4] = " << my_hand[6] << endl;
         }
         else if (num_out_cards == 4)
             my_hand[6] = sample_hand[4] = sample_deck[draw_index++];
-
-        // std::cout << "completed out_cards" << endl;
 
         // score my_hand
         int my_score = lookup_hand(my_hand);
         int my_category = my_score >> 12;
         int my_strength = my_score & 0x00000FFF;
 
-        // std::cout << "scored my_hand" << endl;
-
         bool is_best_hand = true;
 
-        
         vector<int> possible_hand;
         possible_hand.push_back(0);
         possible_hand.push_back(0);
         
 
-        // std::cout << "created possible_hand" << endl;
-
         for (int i = 0; i < num_opponents; i++) {
-
-            // std::cout << "entered opponents loop" << endl;
-
-            
 
             possible_hand[0] = sample_deck[draw_index];
             possible_hand[1] = sample_deck[draw_index + 1];
 
             while(pre_flop_win_estimate(possible_hand, start_num_opponents) < (avg_prob + dist(RNG))) {
 
-                // std::cout << "entered rejection while loop " << endl;
-
                 shuffle(sample_deck.begin() + draw_index, sample_deck.end(), RNG);
                 possible_hand[0] = sample_deck[draw_index];
                 possible_hand[1] = sample_deck[draw_index + 1];
             }
-
-            
-
-            // std::cout << "extied rejection while loop" << endl;
 
             sample_hand[5] = sample_deck[draw_index++];
             sample_hand[6] = sample_deck[draw_index++];
@@ -209,8 +174,6 @@ int estimate_num_wins(int* my_hand, int* sample_hand, vector<int> sample_deck, i
 
 float win_estimate(vector<int>& my_cards, vector<int>& out_cards, int start_num_opponents, int num_opponents, int num_samples = 100000) {
 
-    // std::cout << "entered win_estimate" << endl;
-
     vector<int> curr_deck(DECK);
     int num_out_cards = out_cards.size();
 
@@ -222,8 +185,6 @@ float win_estimate(vector<int>& my_cards, vector<int>& out_cards, int start_num_
     curr_deck.erase(std::remove(curr_deck.begin(), curr_deck.end(), my_cards[0]), curr_deck.end());
     curr_deck.erase(std::remove(curr_deck.begin(), curr_deck.end(), my_cards[1]), curr_deck.end());
 
-    // std::cout << "created my_hand and removed from deck" << endl;
-
     // create sample_hand:
     int* sample_hand = new int[7];
     
@@ -232,19 +193,7 @@ float win_estimate(vector<int>& my_cards, vector<int>& out_cards, int start_num_
         curr_deck.erase(std::remove(curr_deck.begin(), curr_deck.end(), out_cards[i]), curr_deck.end());
     }
 
-    // std::cout << "filled out_cards into sample_hand" << endl;
-    
-    //sample:
-    /*
-    int win_count = 0;
-
-    for (int i = 0; i < num_samples; i++)
-        if (is_winning_estimate(my_hand, sample_hand, curr_deck, num_out_cards, num_opponents))
-            win_count++;
-    */
     int win_count = estimate_num_wins(my_hand, sample_hand, curr_deck, num_out_cards, start_num_opponents, num_opponents, num_samples);
-
-    // std::cout << "exited estimate_num_wins" << endl;
 
     delete[] my_hand;
     delete[] sample_hand;
@@ -279,11 +228,8 @@ void test(vector<int>& my_cards, vector<int>& out_cards, vector<int> nums_oppone
 
             for (int test = 0; test < num_tests; test++) {
 
-                // std::cout << "entered test loop" << endl;
-
                 auto start = chrono::high_resolution_clock::now();
                 float p = win_estimate(my_cards, out_cards, num_opponents, num_opponents, num_samples);
-                // std::cout << "computed win estimate" << endl;
                 auto stop = chrono::high_resolution_clock::now();
                 auto duration = chrono::duration_cast<chrono::microseconds>(stop - start);
                 int t = duration.count();
@@ -470,18 +416,14 @@ int main(int argc, char* argv[]) {
         string my_cards_str = string(argv[2]);
         string out_cards_str = string(argv[3]);
 
-        // cout << "test " << my_cards_str << " " << out_cards_str << endl;
-
         vector<int> my_cards;
         my_cards.push_back(str_to_int_code(my_cards_str.substr(0, 2)));
         my_cards.push_back(str_to_int_code(my_cards_str.substr(2, 2)));
-        // cout << "my_cards: " << my_cards[0] << ", " << my_cards[1] << endl;
 
         vector<int> out_cards;
         out_cards.push_back(str_to_int_code(out_cards_str.substr(0, 2)));
         out_cards.push_back(str_to_int_code(out_cards_str.substr(2, 2)));
         out_cards.push_back(str_to_int_code(out_cards_str.substr(4, 2)));
-        // cout << "out_cards: " << out_cards[0] << ", " << out_cards[1] << ", " << out_cards[2] << endl;
 
         test(my_cards, out_cards);
 
@@ -508,13 +450,6 @@ int main(int argc, char* argv[]) {
         std::cout << record_file_name << endl;
         record_file.open(record_file_name);
     }
-
-    /*
-    vector<int> my_cards = {36, 18};
-    vector<int> out_cards = {33, 19, 49};
-
-    test(my_cards, out_cards);
-    */
 
     bool is_new_hand = true;
     float stack;
