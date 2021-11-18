@@ -8,6 +8,7 @@
 #include <chrono>
 #include <numeric>
 #include <map>
+#include <iomanip>
 using namespace std;
 
 #define DWORD int32_t
@@ -404,6 +405,9 @@ int main(int argc, char* argv[]) {
 	fclose(pfin);
 	printf("complete.\n\n");
 
+    std::cout << std::fixed;
+    std::cout << std::setprecision(2);
+
     populate_maps();
 
     // generate deck:
@@ -486,6 +490,7 @@ int main(int argc, char* argv[]) {
         vector<int> curr_deck(DECK);
 
         float p_win;
+        float margin;
         float expected_value;
 
         std::cout << endl << endl << "+------------------------------+" << endl;
@@ -518,7 +523,10 @@ int main(int argc, char* argv[]) {
         std::cout << "Number of opponents: ";
         cin >> start_num_opponents;
         p_win = pre_flop_win_estimate(my_cards, start_num_opponents);
-        std::cout << "P(win): " << p_win * 100 << "%" << endl;
+        std::cout << endl << "P(win): " << p_win * 100 << "%" << endl;
+
+        margin = p_win - 1.0f / (start_num_opponents + 1);
+        std::cout << "[ " << ( margin >= 0 ? "+" : "-") << margin * 100 << "% ] ==> " << ( margin < 0.0f ? "CHECK / FOLD" : "PLAY" ) << endl << endl;
 
         // get flop
         signal = 1;
@@ -545,7 +553,10 @@ int main(int argc, char* argv[]) {
         std::cout << "Number of opponents: ";
         cin >> num_opponents;
         p_win = win_estimate(my_cards, out_cards, start_num_opponents, num_opponents, NUM_SAMPLES);
-        std::cout << "P(win): " << p_win * 100 << "%" << endl;
+        std::cout << endl << "P(win): " << p_win * 100 << "%" << endl;
+
+        margin = p_win - 1.0f / (num_opponents + 1);
+        std::cout << "[ " << ( margin >= 0 ? "+" : "-") << margin * 100 << "% ] ==> " << ( margin < 0.0f ? "CHECK / FOLD" : "PLAY" ) << endl << endl;
 
         // get turn
         signal = 1;
@@ -572,7 +583,10 @@ int main(int argc, char* argv[]) {
         std::cout << "Number of opponents: ";
         cin >> num_opponents;
         p_win = win_estimate(my_cards, out_cards, start_num_opponents, num_opponents, NUM_SAMPLES);
-        std::cout << "P(win): " << p_win * 100 << "%" << endl;
+        std::cout << endl << "P(win): " << p_win * 100 << "%" << endl;
+
+        margin = p_win - 1.0f / (num_opponents + 1);
+        std::cout << "[ " << ( margin >= 0 ? "+" : "-") << margin * 100 << "% ] ==> " << ( margin < 0.0f ? "CHECK / FOLD" : "PLAY" ) << endl << endl;
 
         // get river
         signal = 1;
@@ -599,7 +613,10 @@ int main(int argc, char* argv[]) {
         std::cout << "Number of opponents: ";
         cin >> num_opponents;
         p_win = win_estimate(my_cards, out_cards, start_num_opponents, num_opponents, NUM_SAMPLES);
-        std::cout << "P(win): " << p_win * 100 << "%" << endl;
+        std::cout << endl << "P(win): " << p_win * 100 << "%" << endl;
+
+        margin = p_win - 1.0f / (num_opponents + 1);
+        std::cout << "[ " << ( margin >= 0 ? "+" : "-") << margin * 100 << "% ] ==> " << ( margin < 0.0f ? "CHECK / FOLD" : "PLAY" ) << endl << endl;
 
         if (should_record) {
 
