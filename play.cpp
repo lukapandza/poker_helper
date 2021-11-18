@@ -291,7 +291,17 @@ void populate_maps() {
 
 }
 
-int process_input_preflop(string input, vector<int>& my_cards, vector<int>& curr_deck) {
+void print_expected_value(float p_win, float bet, float pot) {
+    float bet_ev = p_win * pot - (1 - p_win) * bet;
+    cout << endl << "EV ==> " << ( bet_ev > 0 ? "+" : "" ) << bet_ev << endl;
+}
+
+int process_input_preflop(vector<int>& my_cards, vector<int>& curr_deck) {
+
+    string input;
+
+    std::cout << endl << "Your cards: ";
+    cin >> input;
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
@@ -310,10 +320,27 @@ int process_input_preflop(string input, vector<int>& my_cards, vector<int>& curr
     return 0; // default signal
 }
 
-int process_input_flop(string input, vector<int>& out_cards, vector<int>& curr_deck) {
+int process_input_flop(float p_win, vector<int>& out_cards, vector<int>& curr_deck) {
+
+    string input;
+
+    std::cout << endl << "Flop: ";
+    cin >> input;
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
+    if(input.substr(0, 2) == "ev") {
+
+        input.erase(0, 3);
+        int pos = input.find(" ");
+        float bet = stof(input.substr(0, pos));
+        input.erase(0, pos + 1);
+        float pot = stof(input);
+
+        print_expected_value(p_win, bet, pot);
+
+        return 2;
+    }
 
     int c1 = str_to_int_code(input.substr(0, 2));
     int c2 = str_to_int_code(input.substr(2, 2));
@@ -332,10 +359,27 @@ int process_input_flop(string input, vector<int>& out_cards, vector<int>& curr_d
     return 0; // default signal
 }
 
-int process_input_turn(string input, vector<int>& out_cards, vector<int>& curr_deck) {
+int process_input_turn(float p_win, vector<int>& out_cards, vector<int>& curr_deck) {
+
+    string input;
+
+    std::cout << endl << "Turn: ";
+    cin >> input;
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
+    if(input.substr(0, 2) == "ev") {
+
+        input.erase(0, 3);
+        int pos = input.find(" ");
+        float bet = stof(input.substr(0, pos));
+        input.erase(0, pos + 1);
+        float pot = stof(input);
+
+        print_expected_value(p_win, bet, pot);
+
+        return 2;
+    }
 
     int c1 = str_to_int_code(input.substr(0, 2));
 
@@ -348,10 +392,27 @@ int process_input_turn(string input, vector<int>& out_cards, vector<int>& curr_d
     return 0; // default signal
 }
 
-int process_input_river(string input, vector<int>& out_cards, vector<int>& curr_deck) {
+int process_input_river(float p_win, vector<int>& out_cards, vector<int>& curr_deck) {
+
+    string input;
+
+    std::cout << endl << "River: ";
+    cin >> input;
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
+    if(input.substr(0, 2) == "ev") {
+
+        input.erase(0, 3);
+        int pos = input.find(" ");
+        float bet = stof(input.substr(0, pos));
+        input.erase(0, pos + 1);
+        float pot = stof(input);
+
+        print_expected_value(p_win, bet, pot);
+
+        return 2;
+    }
 
     int c1 = str_to_int_code(input.substr(0, 2));
 
@@ -364,7 +425,7 @@ int process_input_river(string input, vector<int>& out_cards, vector<int>& curr_
     return 0; // default signal
 }
 
-int process_stack_size_input(ofstream& record_file, float& stack) {
+int process_stack_size_input(float p_win, ofstream& record_file, float& stack) {
 
     string input;
 
@@ -373,6 +434,18 @@ int process_stack_size_input(ofstream& record_file, float& stack) {
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
+    if(input.substr(0, 2) == "ev") {
+
+        input.erase(0, 3);
+        int pos = input.find(" ");
+        float bet = stof(input.substr(0, pos));
+        input.erase(0, pos + 1);
+        float pot = stof(input);
+
+        print_expected_value(p_win, bet, pot);
+
+        return 2;
+    }
 
     stack = std::stof(input);
 
@@ -486,10 +559,9 @@ int main(int argc, char* argv[]) {
 
         vector<int> my_cards;
         vector<int> out_cards;
-
         vector<int> curr_deck(DECK);
 
-        float p_win;
+        float p_win = 0.0f;
         float margin;
         float expected_value;
 
@@ -501,20 +573,18 @@ int main(int argc, char* argv[]) {
 
         // get my cards
         while(signal == 1) {
-            std::cout << endl << "Your cards: ";
-            cin >> in_hand;
-            signal = process_input_preflop(in_hand, my_cards, curr_deck);
+            signal = process_input_preflop(my_cards, curr_deck);
             if(signal < 0) break;
         }
         if (signal == -2) break;
         if (signal == -1) {
             if (should_record) {
 
-                signal = process_stack_size_input(record_file, stack);
+                signal = process_stack_size_input(p_win, record_file, stack);
                 
                 while (signal < 0) {
                     if (signal == -2) break;
-                    signal = process_stack_size_input(record_file, stack);
+                    signal = process_stack_size_input(p_win, record_file, stack);
                 }
                 if (signal == -2) break;
             }
@@ -530,21 +600,19 @@ int main(int argc, char* argv[]) {
 
         // get flop
         signal = 1;
-        while(signal == 1) {
-            std::cout << endl << "Flop: ";
-            cin >> in_hand;
-            signal = process_input_flop(in_hand, out_cards, curr_deck);
+        while(signal > 0) {
+            signal = process_input_flop(p_win, out_cards, curr_deck);
             if(signal < 0) break;
         }
         if (signal == -2) break;
         if (signal == -1) {
             if (should_record) {
 
-                signal = process_stack_size_input(record_file, stack);
+                signal = process_stack_size_input(p_win, record_file, stack);
                 
                 while (signal < 0) {
                     if (signal == -2) break;
-                    signal = process_stack_size_input(record_file, stack);
+                    signal = process_stack_size_input(p_win, record_file, stack);
                 }
                 if (signal == -2) break;
             }
@@ -560,21 +628,19 @@ int main(int argc, char* argv[]) {
 
         // get turn
         signal = 1;
-        while(signal == 1) {
-            std::cout << endl << "Turn: ";
-            cin >> in_hand;
-            signal = process_input_turn(in_hand, out_cards, curr_deck);
+        while(signal > 0) {
+            signal = process_input_turn(p_win, out_cards, curr_deck);
             if(signal < 0) break;
         }
         if (signal == -2) break;
         if (signal == -1) {
             if (should_record) {
 
-                signal = process_stack_size_input(record_file, stack);
+                signal = process_stack_size_input(p_win, record_file, stack);
                 
                 while (signal < 0) {
                     if (signal == -2) break;
-                    signal = process_stack_size_input(record_file, stack);
+                    signal = process_stack_size_input(p_win, record_file, stack);
                 }
                 if (signal == -2) break;
             }
@@ -590,21 +656,19 @@ int main(int argc, char* argv[]) {
 
         // get river
         signal = 1;
-        while(signal == 1) {
-            std::cout << endl << "River: ";
-            cin >> in_hand;
-            signal = process_input_river(in_hand, out_cards, curr_deck);
+        while(signal > 0) {
+            signal = process_input_river(p_win, out_cards, curr_deck);
             if(signal < 0) break;
         }
         if (signal == -2) break;
         if (signal == -1) {
             if (should_record) {
 
-                signal = process_stack_size_input(record_file, stack);
+                signal = process_stack_size_input(p_win, record_file, stack);
                 
                 while (signal < 0) {
                     if (signal == -2) break;
-                    signal = process_stack_size_input(record_file, stack);
+                    signal = process_stack_size_input(p_win, record_file, stack);
                 }
                 if (signal == -2) break;
             }
@@ -620,11 +684,13 @@ int main(int argc, char* argv[]) {
 
         if (should_record) {
 
-            signal = process_stack_size_input(record_file, stack);
+            while (signal == 2) {
+                signal = process_stack_size_input(p_win, record_file, stack);
+            }
                 
                 while (signal < 0) {
                     if (signal == -2) break;
-                    signal = process_stack_size_input(record_file, stack);
+                    signal = process_stack_size_input(p_win, record_file, stack);
                 }
                 if (signal == -2) break;
         }
