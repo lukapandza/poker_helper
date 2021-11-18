@@ -46,6 +46,9 @@ bb_stacks = update(bb_stacks, "record-Tue-Nov-16-14-30-52-2021.txt")
 bb_stacks = update(bb_stacks, "record-Tue-Nov-16-20-58-53-2021.txt")
 
 bb_stacks = update(bb_stacks, "record-Wed-Nov-17-11-56-23-2021.txt")
+bb_stacks = update(bb_stacks, "record-Wed-Nov-17-18-54-39-2021.txt")
+bb_stacks = update(bb_stacks, "record-Wed-Nov-17-19-55-55-2021.txt")
+bb_stacks = update(bb_stacks, "record-Wed-Nov-17-21-04-26-2021.txt")
 ```
 
 ### Graphing progress
@@ -55,8 +58,8 @@ num_hands = length(bb_stacks)
 
 ## avg bb/100:
 num_100_samples = floor(num_hands / 100)
-sample_bb_100s = sapply(1:num_100_samples, 
-                        function (x) mean(bb_stacks[((x - 1) * 100 + 1) : (x * 100)]))
+sample_bb_100s = sapply(1 : num_100_samples, 
+                        function (x) bb_stacks[x * 100] - bb_stacks[(x - 1) * 100 + 1])
 sample_bb_100s
 
 # histogram:
