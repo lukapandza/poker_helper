@@ -329,13 +329,14 @@ int process_input_flop(float p_win, vector<int>& out_cards, vector<int>& curr_de
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
-    if(input.substr(0, 2) == "ev") {
+    if(input == "ev") {
 
-        input.erase(0, 3);
-        int pos = input.find(" ");
-        float bet = stof(input.substr(0, pos));
-        input.erase(0, pos + 1);
-        float pot = stof(input);
+        float bet, pot;
+
+        cout << endl << "Bet: ";
+        cin >> bet;
+        cout << "Pot: ";
+        cin >> pot;
 
         print_expected_value(p_win, bet, pot);
 
@@ -368,13 +369,14 @@ int process_input_turn(float p_win, vector<int>& out_cards, vector<int>& curr_de
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
-    if(input.substr(0, 2) == "ev") {
+    if(input == "ev") {
 
-        input.erase(0, 3);
-        int pos = input.find(" ");
-        float bet = stof(input.substr(0, pos));
-        input.erase(0, pos + 1);
-        float pot = stof(input);
+        float bet, pot;
+
+        cout << endl << "Bet: ";
+        cin >> bet;
+        cout << "Pot: ";
+        cin >> pot;
 
         print_expected_value(p_win, bet, pot);
 
@@ -401,13 +403,14 @@ int process_input_river(float p_win, vector<int>& out_cards, vector<int>& curr_d
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
-    if(input.substr(0, 2) == "ev") {
+    if(input == "ev") {
 
-        input.erase(0, 3);
-        int pos = input.find(" ");
-        float bet = stof(input.substr(0, pos));
-        input.erase(0, pos + 1);
-        float pot = stof(input);
+        float bet, pot;
+
+        cout << endl << "Bet: ";
+        cin >> bet;
+        cout << "Pot: ";
+        cin >> pot;
 
         print_expected_value(p_win, bet, pot);
 
@@ -434,13 +437,14 @@ int process_stack_size_input(float p_win, ofstream& record_file, float& stack) {
 
     if(input == "end") return -1; // break hand signal
     if(input == "exit") return -2; // close program signal
-    if(input.substr(0, 2) == "ev") {
+    if(input == "ev") {
 
-        input.erase(0, 3);
-        int pos = input.find(" ");
-        float bet = stof(input.substr(0, pos));
-        input.erase(0, pos + 1);
-        float pot = stof(input);
+        float bet, pot;
+
+        cout << endl << "Bet: ";
+        cin >> bet;
+        cout << "Pot: ";
+        cin >> pot;
 
         print_expected_value(p_win, bet, pot);
 
@@ -684,6 +688,7 @@ int main(int argc, char* argv[]) {
 
         if (should_record) {
 
+            signal = process_stack_size_input(p_win, record_file, stack);
             while (signal == 2) {
                 signal = process_stack_size_input(p_win, record_file, stack);
             }
