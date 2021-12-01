@@ -51,6 +51,25 @@ bb_stacks = update(bb_stacks, "record-Wed-Nov-17-19-55-55-2021.txt")
 bb_stacks = update(bb_stacks, "record-Wed-Nov-17-21-04-26-2021.txt")
 
 bb_stacks = update(bb_stacks, "record-Thu-Nov-18-09-16-23-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Fri-Nov-19-12-06-44-2021.txt")
+bb_stacks = update(bb_stacks, "record-Fri-Nov-19-19-28-07-2021.txt")
+bb_stacks = update(bb_stacks, "record-Fri-Nov-19-21-18-59-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Sat-Nov-20-14-21-00-2021.txt")
+bb_stacks = update(bb_stacks, "record-Sat-Nov-20-15-37-40-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Sun-Nov-21-12-42-54-2021.txt")
+bb_stacks = update(bb_stacks, "record-Sun-Nov-21-14-52-38-2021.txt")
+bb_stacks = update(bb_stacks, "record-Sun-Nov-21-16-42-39-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Mon-Nov-22-14-47-29-2021.txt")
+bb_stacks = update(bb_stacks, "record-Mon-Nov-22-16-08-08-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Tue-Nov-23-21-57-16-2021.txt")
+
+bb_stacks = update(bb_stacks, "record-Wed-Nov-24-17-55-27-2021.txt")
+bb_stacks = update(bb_stacks, "record-Wed-Nov-24-20-31-34-2021.txt")
 ```
 
 ### Graphing progress
@@ -65,7 +84,7 @@ sample_bb_100s = sapply(1 : num_100_samples,
 sample_bb_100s
 
 # histogram:
-hist_width = 50
+hist_width = 25
 
 lo = (min(sample_bb_100s) - min(sample_bb_100s) %% hist_width) - hist_width
 hi = (max(sample_bb_100s) + (hist_width - max(sample_bb_100s) %% hist_width)) + hist_width
@@ -74,10 +93,15 @@ breaks = seq(from = lo,
              to = hi, 
              by = hist_width)
 
+pdf(file = "histogram.pdf", width = 8, height = 8 * 2 / 3)
+
 hist(sample_bb_100s,
-     xlim = c(lo, hi),
+     xlab = 'bb/100',
+     xlim = c(lo - 10, hi + 10),
      breaks = breaks, 
      col = 'white')
+
+dev.off()
 
 avg_bb_100 = mean(sample_bb_100s)
 var_bb_100 = var(sample_bb_100s)
@@ -89,6 +113,8 @@ performance = (bb_stacks[length(bb_stacks)] - bb_stacks[1]) / num_hands * 100
 ## probability that I am profitable:
 p_profit = 1 - pnorm(0, avg_bb_100, sd_bb_100)
 
+pdf(file = "cumulative_data.pdf", width = 8, height = 8 * 2 / 3)
+
 ## visualize hands:
 plot(1:length(bb_stacks), 
      bb_stacks, 
@@ -96,23 +122,245 @@ plot(1:length(bb_stacks),
      lty = 1, 
      xlab = "Hand #", 
      ylab = "Cumulative Stack Size [# of big blinds]", 
-     lwd = 1, 
+     lwd = 2, 
      pch = NULL)
-
-lines(c(1, length(bb_stacks)), c(bb_stacks[1], bb_stacks[length(bb_stacks)]), 
-      col = "lightgreen", 
-      lty = 2)
 
 lines(c(0, length(bb_stacks)), c(0, 0), 
       col = "red", 
       lty = 2)
 
 legend(0, max(bb_stacks), 
-       c(paste('# of Hands = ', as.character(num_hands)), 
-         paste('MEAN bb/100 = ', as.character(round(avg_bb_100, 2))), 
-         paste('VAR bb/100 = ', as.character(round(var_bb_100, 2))), 
-         paste('SD bb/100 = ', as.character(round(sd_bb_100, 2))), 
-         paste('P(profit) = ', as.character(round(p_profit, 2)))),
-       lty=c(2, 2, 2), 
-       col=c('white', 'white', 'white'))
+       cex = .75, 
+       pt.cex = 1,
+       c("Win/Loss Line", 
+         'Observed Data'),
+       lty=c(2, 1), 
+       lwd=c(1, 2),
+       col=c('red', 'black'))
+
+dev.off()
+
+```
+
+
+## Bayesian analysis
+```{r bayes_1}
+data = sample_bb_100s
+n = length(data)
+
+prior_mean = 0
+prior_variance = 100**2
+
+data_mean = mean(data)
+data_mean
+data_variance = var(data)
+data_variance
+
+posterior_mean = ((1 / data_variance) / (n / prior_variance + 1 / data_variance)) * prior_mean + ((n / prior_variance) / (n / prior_variance + 1 / data_variance)) * data_mean
+posterior_mean
+posterior_sd = sqrt(1 / (1 / data_variance + n / prior_variance))
+posterior_sd
+
+pnorm(-1.8763)
+
+qnorm(0.33, posterior_mean, posterior_sd)
+
+credible_interval_67_lo = qnorm(.34 / 2, posterior_mean, posterior_sd)
+credible_interval_67_hi = qnorm(1 - .34 / 2, posterior_mean, posterior_sd)
+
+credible_interval_90_lo = qnorm(.1 / 2, posterior_mean, posterior_sd)
+credible_interval_90_hi = qnorm(1 - .1 / 2, posterior_mean, posterior_sd)
+
+credible_interval_95_lo = qnorm(.05 / 2, posterior_mean, posterior_sd)
+credible_interval_95_hi = qnorm(1 - .05 / 2, posterior_mean, posterior_sd)
+
+credible_interval_99_lo = qnorm(.01 / 2, posterior_mean, posterior_sd)
+credible_interval_99_hi = qnorm(1 - .01 / 2, posterior_mean, posterior_sd)
+
+```
+
+```{r bayes_norm}
+lo_lim = -150
+hi_lim = 150
+
+X = seq(lo_lim, hi_lim, by = 1)
+prior_dist = dnorm(X, prior_mean, sqrt(prior_variance))
+post_dist = dnorm(X, posterior_mean, posterior_sd)
+
+pdf(file = "normal_dist.pdf", width = 8, height = 8 * 2 / 3)
+
+# prior
+plot(X,
+     prior_dist,
+     type = 'l',
+     lty = 2,
+     lwd = 2,
+     xlab = 'bb/100',
+     ylab = 'Probability',
+     col = 'gray',
+     xlim = c(lo_lim, hi_lim),
+     ylim = c(0, dnorm(posterior_mean, posterior_mean, posterior_sd)))
+
+# 67% credible interval
+lines(c(credible_interval_67_lo, credible_interval_67_lo), 
+      c(0, dnorm(credible_interval_67_lo, posterior_mean, posterior_sd)), 
+      col = "green", 
+      lty = 1,
+      lwd = 2)
+lines(c(credible_interval_67_hi, credible_interval_67_hi), 
+      c(0, dnorm(credible_interval_67_hi, posterior_mean, posterior_sd)), 
+      col = "green", 
+      lty = 1,
+      lwd = 2)
+
+# 90% credible interval
+lines(c(credible_interval_90_lo, credible_interval_90_lo), 
+      c(0, dnorm(credible_interval_90_lo, posterior_mean, posterior_sd)), 
+      col = "cyan", 
+      lty = 1,
+      lwd = 2)
+lines(c(credible_interval_90_hi, credible_interval_90_hi), 
+      c(0, dnorm(credible_interval_90_hi, posterior_mean, posterior_sd)), 
+      col = "cyan", 
+      lty = 1,
+      lwd = 2)
+
+# 95% credible interval
+lines(c(credible_interval_95_lo, credible_interval_95_lo), 
+      c(0, dnorm(credible_interval_95_lo, posterior_mean, posterior_sd)), 
+      col = "blue", 
+      lty = 1,
+      lwd = 2)
+lines(c(credible_interval_95_hi, credible_interval_95_hi), 
+      c(0, dnorm(credible_interval_95_hi, posterior_mean, posterior_sd)), 
+      col = "blue", 
+      lty = 1,
+      lwd = 2)
+
+# 99% credible interval
+lines(c(credible_interval_99_lo, credible_interval_99_lo), 
+      c(0, dnorm(credible_interval_99_lo, posterior_mean, posterior_sd)), 
+      col = "purple", 
+      lty = 1,
+      lwd = 2)
+lines(c(credible_interval_99_hi, credible_interval_99_hi), 
+      c(0, dnorm(credible_interval_99_hi, posterior_mean, posterior_sd)), 
+      col = "purple", 
+      lty = 1,
+      lwd = 2)
+
+# posterior
+lines(X,
+      post_dist,
+      type = 'l',
+      lty = 1,
+      lwd = 2)
+
+legend(lo_lim, dnorm(posterior_mean, posterior_mean, posterior_sd), 
+       cex = .75, 
+       pt.cex = 1,
+       c('Prior Distribution', 
+         'Posterior Distribution', 
+         paste('67% credible interval = [ ', as.character(round(credible_interval_67_lo, 2)), ', ', as.character(round(credible_interval_67_hi, 2)), ' ]'),
+         paste('90% credible interval = [ ', as.character(round(credible_interval_90_lo, 2)), ', ', as.character(round(credible_interval_90_hi, 2)), ' ]'),
+         paste('95% credible interval = [ ', as.character(round(credible_interval_95_lo, 2)), ', ', as.character(round(credible_interval_95_hi, 2)), ' ]'), 
+         paste('99% credible interval = [ ', as.character(round(credible_interval_99_lo, 2)), ', ', as.character(round(credible_interval_99_hi, 2)), ' ]')),
+       lty=c(2, 1, 1, 1, 1, 1), 
+       lwd=c(2, 2, 2, 2, 2, 2),
+       col=c('gray', 'black', 'green', 'cyan', 'blue', 'purple'))
+
+dev.off()
+```
+
+```{r bayes_vis}
+N = length(bb_stacks)
+
+pdf(file = "data_intervals_dist.pdf", width = 8, height = 8 * 2 / 3)
+
+# 0 line
+plot(c(1, N), 
+     c(0, 0), 
+     type = 'l', 
+     lty = 1, 
+     col = 'red',
+     xlab = "Hand #", 
+     ylab = "Cumulative Stack Size [# of big blinds]",
+     ylim = c(credible_interval_99_lo * n, credible_interval_99_hi * n),
+     lwd = 1, 
+     pch = NULL)
+
+# posterior mean
+lines(c(1, N), c(0, posterior_mean * n), 
+      col = "black", 
+      lty = 2,
+      lwd = 1)
+
+# 67% credible interval
+lines(c(1, N), c(0, credible_interval_67_lo * n), 
+      col = "green", 
+      lty = 2)
+lines(c(1, N), c(0, credible_interval_67_hi * n), 
+      col = "green", 
+      lty = 2)
+
+# 90% credible interval
+lines(c(1, N), c(0, credible_interval_90_lo * n), 
+      col = "cyan", 
+      lty = 2)
+lines(c(1, N), c(0, credible_interval_90_hi * n), 
+      col = "cyan", 
+      lty = 2)
+
+# 95% credible interval
+lines(c(1, N), c(0, credible_interval_95_lo * n), 
+      col = "blue", 
+      lty = 2)
+lines(c(1, N), c(0, credible_interval_95_hi * n), 
+      col = "blue", 
+      lty = 2)
+
+# 99% credible interval
+lines(c(1, N), c(0, credible_interval_99_lo * n), 
+      col = "purple", 
+      lty = 2)
+lines(c(1, N), c(0, credible_interval_99_hi * n), 
+      col = "purple", 
+      lty = 2)
+
+# data
+lines(1 : N,
+      bb_stacks,
+      type = 'l',
+      lty = 1,
+      lwd = 2)
+
+legend(0, credible_interval_99_hi * n, 
+       cex = .75, 
+       pt.cex = 1,
+       c("Win/Loss Line", 
+         'Observed Data',
+         paste('MEAN = ', as.character(round(posterior_mean, 2)), ' bb/100'), 
+         paste('67% credible interval = [ ', as.character(round(credible_interval_67_lo, 2)), ', ', as.character(round(credible_interval_67_hi, 2)), ' ]'),
+         paste('90% credible interval = [ ', as.character(round(credible_interval_90_lo, 2)), ', ', as.character(round(credible_interval_90_hi, 2)), ' ]'),
+         paste('95% credible interval = [ ', as.character(round(credible_interval_95_lo, 2)), ', ', as.character(round(credible_interval_95_hi, 2)), ' ]'), 
+         paste('99% credible interval = [ ', as.character(round(credible_interval_99_lo, 2)), ', ', as.character(round(credible_interval_99_hi, 2)), ' ]')),
+       lty=c(1, 1, 2, 2, 2, 2, 2), 
+       lwd=c(1, 2, 1, 1, 1, 1, 1),
+       col=c('red', 'black', 'black', 'green', 'cyan', 'blue', 'purple'))
+
+dev.off()
+```
+
+
+## Frequentist analysis
+```{r freq_1}
+data = sample_bb_100s
+n = length(data)
+
+known_mean = 0
+known_sd = 100
+
+z_value = (mean(data) - known_mean) / (known_sd / sqrt(n))
+p_profit = 1 - pnorm(z_value)
+p_profit
 ```
