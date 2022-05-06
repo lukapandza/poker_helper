@@ -7,3 +7,7 @@ The project is built around a [very old approach to the problme of ranking hands
 An additional part of the program is a pre-computed table of winning probabilities in the pre-flop stage which I have generated myself. This significantly reduces the computational time required per simulation. 
 
 The opponents are simulated as simply competent by checking their pre-flop win probability and sampling a tight normal distribution to determine weather they would fold or not. This step is repeated in the following rounds as well. This yielded better results than simply playing out every game and it errs on the side of caution when estimating the user's win probability.
+
+## Performance Analysis
+
+<img src = "https://github.com/lukapandza/poker_helper/blob/main/analysis_poster.jpg"></img>
